@@ -3,10 +3,12 @@
 --exclude=landing-page
 --exclude=build
 --exclude=applauncher
-
+--exclude=ios
+--exclude=android
 --exclude=node_modules
 --exclude=bower_components
 --exclude=gulp
+
 --languages=-javascript
 --langdef=js
 --langmap=js:.js
