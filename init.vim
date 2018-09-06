@@ -29,26 +29,29 @@ Plug 'vim-airline/vim-airline-themes'
 "Plug 'Chiel92/vim-autoformat'
 Plug 'scrooloose/nerdtree'
 Plug 'terryma/vim-multiple-cursors'
-Plug 'mattn/emmet-vim'
 Plug 'vimwiki/vimwiki'
 
+" Javascript & web plugins
+Plug 'mattn/emmet-vim'
 Plug 'pangloss/vim-javascript'      "javascript syntax support
 Plug 'mxw/vim-jsx'                  " jsx syntax support
-
-Plug 'fweep/vim-tabber'             "prettier powerbar style tabs
-
 Plug 'Valloric/MatchTagAlways'      "html tag highlight and tab
+
+" golang plugins
+Plug 'fatih/vim-go'
 
 Plug 'tpope/vim-surround'           "surround plugin
 
+" Snippets plugins
 Plug 'SirVer/ultisnips'
 Plug 'honza/vim-snippets' " Snippets are separated from the engine. Add this if you want them:
 Plug 'epilande/vim-react-snippets'
 
 Plug 'ctrlpvim/ctrlp.vim' " search for file plugin
-Plug 'majutsushi/tagbar' " tag navbar
+"Plug 'majutsushi/tagbar' " tag navbar
 
 Plug 'tpope/vim-unimpaired' " [ ] key bindings
+
 call plug#end()
 
 
@@ -230,6 +233,8 @@ nnoremap <C-n> :TagbarToggle<CR>
 
 " ultisnips tab
 let g:UltiSnipsExpandTrigger="<C-l>"
+let g:UltiSnipsJumpForwardTrigger="<C-k>"
+let g:UltiSnipsJumpBackwardTrigger="<C-j>"
 
 " unimpaired bindings
 nmap < [

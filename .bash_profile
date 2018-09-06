@@ -27,3 +27,9 @@ export PATH="$HOME/.cargo/bin:$PATH"
 alias sshposeg="CLOUDSDK_ACTIVE_CONFIG_NAME=poseg-config gcloud compute ssh cloud_smart_eye2@instance-1"
 
 alias jtags="ctags -R . && sed -i '' -E '/^(if|switch|function|module\.exports|it|describe).+language:js$/d' tags"
+
+export QUANDL_API_KEY=MUR1Nu_3yL6n5_ZxspvN
+export LC_ALL=sv_SE.UTF-8
+export LANG=sv_SE.UTF-8
+
+export PYTHONPATH=/Users/system/Github/Machine-Learning-Trading-Strategies/:/Users/system/Github/trading_calendars/
