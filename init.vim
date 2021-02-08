@@ -8,7 +8,6 @@ let maplocalleader = 'z'
 
 " Keep Plugin commands between vundle#begin/end.
 "Plugin 'tpope/vim-fugitive'
-"Plugin 'vim-syntastic/syntastic'
 "Plugin 'w0rp/ale'
 "Plugin 'leafgarland/typescript-vim'
 "Plugin 'Quramy/tsuquyomi'
@@ -23,9 +22,17 @@ let maplocalleader = 'z'
 " Plugins here
 "
 call plug#begin('~/.config/nvim/plugged')
-Plug 'Valloric/YouCompleteMe'
+" Autocomplete stuff
+"Plug 'Valloric/YouCompleteMe'
+Plug 'davidhalter/jedi-vim'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+Plug 'deoplete-plugins/deoplete-jedi'
+Plug 'ervandew/supertab'
+
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
+Plug 'w0rp/ale'
+"Plug 'vim-syntastic/syntastic'
 "Plug 'Chiel92/vim-autoformat'
 Plug 'scrooloose/nerdtree'
 Plug 'terryma/vim-multiple-cursors'
@@ -36,6 +43,7 @@ Plug 'mattn/emmet-vim'
 Plug 'pangloss/vim-javascript'      "javascript syntax support
 Plug 'mxw/vim-jsx'                  " jsx syntax support
 Plug 'Valloric/MatchTagAlways'      "html tag highlight and tab
+Plug 'maksimr/vim-jsbeautify'
 
 " golang plugins
 Plug 'fatih/vim-go'
@@ -51,6 +59,8 @@ Plug 'ctrlpvim/ctrlp.vim' " search for file plugin
 "Plug 'majutsushi/tagbar' " tag navbar
 
 Plug 'tpope/vim-unimpaired' " [ ] key bindings
+
+Plug 'google/yapf', { 'rtp': 'plugins/vim', 'for': 'python' }
 
 call plug#end()
 
@@ -123,7 +133,11 @@ nnoremap <tab> %
 vnoremap <tab> %
 
 "autocomplete
-inoremap <buffer> <C-Space> <C-X><C-O>
+" inoremap <buffer> <C-Space> <C-X><C-O>
+let g:jedi#completions_enabled = 0
+let g:deoplete#enable_at_startup = 1
+let g:SuperTabMappingForward = '<s-tab>'
+let g:SuperTabMappingBackward = '<tab>'
 
 " auto open nerdtree upon start
 autocmd vimenter * NERDTree
@@ -163,6 +177,7 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 "let g:syntastic_typescript_tsc_fname = ''
 "let g:syntastic_typescript_checkers = ['eslint', 'tslint']
+"let g:syntastic_javascript_checkers = ['eslint']
 "let g:syntastic_python_checkers = ['python']
 "let g:typescript_compiler_binary = 'tsc'
 "let g:typescript_compiler_options = ''
@@ -194,10 +209,10 @@ let g:vimwiki_list = [wiki]
 "set noshowcmd
 "set nolazyredraw
 
-
 "Ale config
-"let g:ale_sign_error = '●' " Less aggressive than the default '>>'
-"let g:ale_sign_warning = '.'
+let g:ale_sign_error = '●' " Less aggressive than the default '>>'
+let g:ale_sign_warning = '.'
+let b:ale_fixers = {'javascript': ['prettier', 'eslint'], 'python': ['pylint']}
 
 "autorun prettier
 "autocmd BufWritePost *.js AsyncRun -post=checktime ./node_modules/.bin/eslint --fix %
@@ -249,3 +264,18 @@ vnoremap § <
 vnoremap ° > 
 xnoremap § < 
 xnoremap ° > 
+
+" js beautify
+map <c-f> :call JsBeautify()<cr>
+let g:editorconfig_Beautifier = "~/.config/nvim/.editorconfig"
+
+" yapf settings
+nmap <Leader>y :YAPF<CR>:w<CR>
+
+"  Outside colorscheme switch
+nmap <Leader>o :set background=light<CR>:colorscheme PaperColor<CR>
+nmap <Leader>i :set background=dark<CR>:colorscheme NeoSolarized<CR>
+
+" Python installation
+let g:python_host_prog = '/anaconda/envs/neovim2/bin/python'
+let g:python3_host_prog = '/anaconda/envs/py36/bin/python'
