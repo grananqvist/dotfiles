@@ -72,7 +72,7 @@ set nu
 set rnu
 set autoindent
 set showmode
-set colorcolumn=100
+set colorcolumn=83
 set ruler
 set hidden  " manage buffers more liberarly
 
@@ -213,6 +213,7 @@ let g:vimwiki_list = [wiki]
 let g:ale_sign_error = '●' " Less aggressive than the default '>>'
 let g:ale_sign_warning = '.'
 let b:ale_fixers = {'javascript': ['prettier', 'eslint'], 'python': ['pylint']}
+let g:ale_python_pylint_change_directory = 0
 
 "autorun prettier
 "autocmd BufWritePost *.js AsyncRun -post=checktime ./node_modules/.bin/eslint --fix %
@@ -277,5 +278,5 @@ nmap <Leader>o :set background=light<CR>:colorscheme PaperColor<CR>
 nmap <Leader>i :set background=dark<CR>:colorscheme NeoSolarized<CR>
 
 " Python installation
-let g:python_host_prog = '/anaconda/envs/neovim2/bin/python'
-let g:python3_host_prog = '/anaconda/envs/py36/bin/python'
+let g:python_host_prog = '/Users/system/opt/anaconda3/envs/neovim2/bin/python'
+let g:python3_host_prog = '/Users/system/opt/anaconda3/envs/neovim/bin/python'
