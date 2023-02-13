@@ -81,6 +81,7 @@ local keymap = vim.api.nvim_set_keymap
 -- navigation
 keymap("n", "<C-b>", ":NvimTreeToggle<CR>", opts)               -- toggle navbar
 keymap("n", "<leader>W", ":set invwrap<CR>", opts)              -- toggle wrapping lines
+keymap("n", "<leader><leader>", "<ESC><leader>sr<ESC>", opts)              -- toggle wrapping lines
 keymap("n", "<Tab>", "%", opts)
 keymap("v", "<Tab>", "%", opts)
 
@@ -100,7 +101,6 @@ keymap("i", "kj", "<ESC>", opts)
 
 lvim.keys.normal_mode["<S-l>"] = ":BufferLineCycleNext<CR>"
 lvim.keys.normal_mode["<S-h>"] = ":BufferLineCyclePrev<CR>"
-
 
 ---- Leader keymappings ----
 lvim.builtin.which_key.mappings["o"] = {
@@ -168,6 +168,7 @@ lvim.builtin.terminal.active = true
 lvim.builtin.nvimtree.setup.view.side = "left"
 lvim.builtin.nvimtree.setup.renderer.icons.show.git = false
 lvim.builtin.nvimtree.setup.view.relativenumber = true
+lvim.builtin.autopairs.active = false
 
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
