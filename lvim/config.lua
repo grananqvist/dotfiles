@@ -81,7 +81,8 @@ local keymap = vim.api.nvim_set_keymap
 -- navigation
 keymap("n", "<C-b>", ":NvimTreeToggle<CR>", opts)               -- toggle navbar
 keymap("n", "<leader>W", ":set invwrap<CR>", opts)              -- toggle wrapping lines
-keymap("n", "<leader><leader>", "<ESC><leader>sr<ESC>", opts)              -- toggle wrapping lines
+keymap("n", "<leader><leader>", "<cmd>lua require('telescope.builtin').buffers()<cr>", opts)              -- toggle wrapping lines
+
 keymap("n", "<Tab>", "%", opts)
 keymap("v", "<Tab>", "%", opts)
 
@@ -128,21 +129,22 @@ lvim.builtin.which_key.mappings["o"] = {
 
 -- Change Telescope navigation to use j and k for navigation and n and p for history in both input and normal mode.
 -- we use protected-mode (pcall) just in case the plugin wasn't loaded yet.
--- local _, actions = pcall(require, "telescope.actions")
--- lvim.builtin.telescope.defaults.mappings = {
---   -- for input mode
---   i = {
---     ["<C-j>"] = actions.move_selection_next,
---     ["<C-k>"] = actions.move_selection_previous,
---     ["<C-n>"] = actions.cycle_history_next,
---     ["<C-p>"] = actions.cycle_history_prev,
---   },
---   -- for normal mode
---   n = {
---     ["<C-j>"] = actions.move_selection_next,
---     ["<C-k>"] = actions.move_selection_previous,
---   },
--- }
+local _, actions = pcall(require, "telescope.actions")
+lvim.builtin.telescope.defaults.mappings = {
+  -- for input mode
+  i = {
+     --["<CR>"] = actions.set_insert_mode,
+     ["<C-j>"] = actions.move_selection_next,
+     ["<C-k>"] = actions.move_selection_previous,
+     ["<C-n>"] = actions.cycle_history_next,
+     ["<C-p>"] = actions.cycle_history_prev,
+   },
+   -- for normal mode
+   n = {
+     ["<C-j>"] = actions.move_selection_next,
+     ["<C-k>"] = actions.move_selection_previous,
+   },
+}
 
 -- Change theme settings
 -- lvim.builtin.theme.options.dim_inactive = true
@@ -503,7 +505,7 @@ lvim.plugins = {
             get_venvs = function(venvs_path)
                 return require('swenv.api').get_venvs(venvs_path)
             end,
-            venvs_path = '/opt/anaconda3/envs',
+            venvs_path = '/Users/fgranqvist/opt/anaconda3/envs',
             post_set_venv = nil,
         }
     end
