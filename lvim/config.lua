@@ -81,7 +81,7 @@ local keymap = vim.api.nvim_set_keymap
 -- navigation
 keymap("n", "<C-b>", ":NvimTreeToggle<CR>", opts)               -- toggle navbar
 keymap("n", "<leader>W", ":set invwrap<CR>", opts)              -- toggle wrapping lines
-keymap("n", "<leader><leader>", "<cmd>lua require('telescope.builtin').buffers()<cr>", opts)              -- toggle wrapping lines
+keymap("n", "<leader>i", "<cmd>lua require('telescope.builtin').buffers({sort_lastused=true})<cr>", opts)              -- toggle wrapping lines
 
 keymap("n", "<Tab>", "%", opts)
 keymap("v", "<Tab>", "%", opts)
@@ -120,7 +120,11 @@ lvim.builtin.which_key.mappings["o"] = {
 
 
 
-
+-- Copilot settings
+vim.g.copilot_assume_mapped = true
+--keymap("n", "<C-g>", ":copilot#Accept('\\<CR>')<CR>", opts)               -- toggle navbar
+--keymap("i", "<C-g>", ":copilot#Accept('\\<CR>')<CR>", opts)               -- toggle navbar
+vim.api.nvim_set_keymap("i", "<C-G>", 'copilot#Accept("<CR>")', { silent = true, expr = true })
 
 -- unmap a default keymapping
 -- vim.keymap.del("n", "<C-Up>")
@@ -145,6 +149,7 @@ lvim.builtin.telescope.defaults.mappings = {
      ["<C-k>"] = actions.move_selection_previous,
    },
 }
+
 
 -- Change theme settings
 -- lvim.builtin.theme.options.dim_inactive = true
@@ -335,6 +340,13 @@ pcall(function()
             enable = true,
             command = "clippy",
           },
+          assist = {
+            importMergeBehavior = "full", -- or full
+            importPrefix = "by_self",
+          },
+          procMacro = {
+            enable = true
+          },
         },
       },
     },
@@ -470,6 +482,7 @@ lvim.builtin.which_key.mappings["P"] = {
 
 -- Plugins
 lvim.plugins = {
+  "github/copilot.vim",
   "overcache/NeoSolarized",
   -- Rust plugins
   "simrat39/rust-tools.nvim",
@@ -505,7 +518,7 @@ lvim.plugins = {
             get_venvs = function(venvs_path)
                 return require('swenv.api').get_venvs(venvs_path)
             end,
-            venvs_path = '/Users/fgranqvist/opt/anaconda3/envs',
+            venvs_path = '/opt/anaconda3/envs',
             post_set_venv = nil,
         }
     end
