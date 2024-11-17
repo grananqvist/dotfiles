@@ -410,3 +410,9 @@ bind C-r source-file ~/.tmux.conf.local \; display "Config reloaded"
 
 bind -r C-n previous-window
 bind -r C-m next-window
+bind -r C-h previous-window
+bind -r C-l next-window
+
+# Enable restoring pane history
+set -g @resurrect-save-bash-history 'on'
+set -g @resurrect-save-zsh-history 'on'
