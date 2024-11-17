@@ -25,6 +25,8 @@ bindkey -r '^L'
 # Source files with secrets and local machine env. Not added to git.
 [[ -f ~/.bashrc ]] && source ~/.bashrc # ghcup-env
 [[ -f ~/.secrets ]] && source ~/.secrets
+# Fuzzy search
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 export PATH="/opt/homebrew/opt/llvm@12/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/llvm@12/lib"
@@ -56,8 +58,6 @@ fi
 
 export PATH="/opt/homebrew/opt/openssl@3/bin:$PATH"
 export PATH="/opt/homebrew/opt/node@14/bin:$PATH"
-
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
 export PATH="/opt/homebrew/opt/node@16/bin:$PATH"
 export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
