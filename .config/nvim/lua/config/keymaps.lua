@@ -4,11 +4,8 @@
 
 local opts = { noremap = true, silent = true }
 
--- Delete some default LazyVim keymaps that I don't use.
-vim.keymap.del("n", "<leader>ww")
-vim.keymap.del("n", "<leader>wd")
-vim.keymap.del("n", "<leader>w-")
-vim.keymap.del("n", "<leader>w|")
+-- How to delete default LazyVim keymaps
+--vim.keymap.del("n", "<leader>w|")
 
 -- Map the Option key to the Alt key
 vim.api.nvim_set_var("mac_option_as_meta", true)
@@ -43,7 +40,7 @@ vim.keymap.set("n", "<S-Right>", ":vertical resize +2<CR>", opts)
 
 -- iterate tabs
 vim.keymap.set("n", "<S-l>", ":BufferLineCycleNext<CR>", opts)
-vim.keymap.set("n", "<S-l>", ":BufferLineCyclePrev<CR>", opts)
+vim.keymap.set("n", "<S-h>", ":BufferLineCyclePrev<CR>", opts)
 
 -- Toggle line wrapping
 vim.keymap.set("n", "<leader>W", ":set invwrap<CR>", opts) -- toggle wrapping lines
@@ -66,7 +63,7 @@ vim.keymap.set("n", "_", "<Plug>(leap-backward)", opts)
 
 -- Neo-tree
 -- TODO: set neo-tree relative line numbers
-vim.keymap.set("n", "<C-b>", ":Neotree toggle<CR>", opts)
+vim.keymap.set("n", "<C-b>", "<cmd>Neotree toggle<CR>", opts)
 
 -- Harpoon navigation. Needs to be here to override lazyvim bindings
 vim.keymap.set("n", "<M-h>", ":Telescope harpoon marks<cr>", {})

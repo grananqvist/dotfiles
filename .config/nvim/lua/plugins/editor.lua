@@ -21,6 +21,7 @@ return {
         ["<leader>u"] = { name = "+ui" },
         ["<leader>w"] = { name = "+worktree" },
         ["<leader>x"] = { name = "+diagnostics/quickfix" },
+        ["<leader>n"] = { name = "+xcode" },
       },
     },
     config = function(_, opts)
@@ -32,4 +33,5 @@ return {
 
   { "echasnovski/mini.pairs", enabled = false },
   { "mtdl9/vim-log-highlighting" },
+  { "cfdrake/vim-pbxproj" },
 }
