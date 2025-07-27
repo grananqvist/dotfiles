@@ -5,7 +5,7 @@
 local opt = vim.opt
 
 -- Basic Settings
-opt.colorcolumn = "83"
+opt.colorcolumn = "80"
 opt.visualbell = true -- stop that ANNOYING beeping
 opt.clipboard = "" -- dont use system clipboard by default in vim, use * and + registers
 opt.fileencoding = "utf-8" -- the encoding written to a file

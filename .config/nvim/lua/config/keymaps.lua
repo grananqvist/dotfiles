@@ -62,7 +62,6 @@ vim.keymap.set("n", "-", "<Plug>(leap-forward)", opts)
 vim.keymap.set("n", "_", "<Plug>(leap-backward)", opts)
 
 -- Neo-tree
--- TODO: set neo-tree relative line numbers
 vim.keymap.set("n", "<C-b>", "<cmd>Neotree toggle<CR>", opts)
 
 -- Harpoon navigation. Needs to be here to override lazyvim bindings
@@ -71,3 +70,10 @@ vim.keymap.set("n", "<M-j>", "<cmd>lua require('harpoon.ui').nav_file(1)<cr>", {
 vim.keymap.set("n", "<M-k>", "<cmd>lua require('harpoon.ui').nav_file(2)<cr>", {})
 vim.keymap.set("n", "<M-l>", "<cmd>lua require('harpoon.ui').nav_file(3)<cr>", {})
 vim.keymap.set("n", "<M-ö>", "<cmd>lua require('harpoon.ui').nav_file(4)<cr>", {})
+
+-- git
+vim.keymap.set("n", "<leader>gg", "<cmd>Git<cr>", { desc = "Git navigator" })
+vim.keymap.set("n", "<leader>gp", "<cmd>Git push<cr>", { desc = "Git push" })
+
+-- comment
+vim.keymap.set({ "n", "v" }, "<leader>/", ":CommentToggle<CR>", opts)

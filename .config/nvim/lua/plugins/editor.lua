@@ -1,5 +1,18 @@
 return {
   {
+    "nvim-treesitter/nvim-treesitter",
+    opts = {
+      highlight = {
+        disable = { "python" },
+      },
+      indent = {
+        disable = { "python" },
+      },
+      incremental_selection = { disable = { "python" } },
+      textobjects = { disable = { "python" } },
+    },
+  },
+  {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
@@ -34,4 +47,10 @@ return {
   { "echasnovski/mini.pairs", enabled = false },
   { "mtdl9/vim-log-highlighting" },
   { "cfdrake/vim-pbxproj" },
+  {
+    "terrortylor/nvim-comment",
+    config = function(_, opts)
+      require("nvim_comment").setup(opts)
+    end,
+  },
 }

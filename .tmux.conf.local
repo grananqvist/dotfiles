@@ -416,3 +416,18 @@ bind -r C-l next-window
 # Enable restoring pane history
 set -g @resurrect-save-bash-history 'on'
 set -g @resurrect-save-zsh-history 'on'
+
+bind-key -n M-Left  switch-client -p
+bind-key -n M-Right switch-client -n
+bind-key -n M-l  switch-client -p
+bind-key -n M-h switch-client -n
+
+# whenever a client switches session, show the new session name
+set-hook -g client-session-changed 'display-message "Session → #{session_name}"'
+
+# Prefix+X: go to the next session, then kill the old one
+bind-key X run-shell '
+  old=$(tmux display-message -p "#S"); \
+  tmux switch-client -n; \
+  tmux kill-session -t "$old"
+'

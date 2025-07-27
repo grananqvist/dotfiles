@@ -1,6 +1,9 @@
 return {
   {
     "nvim-telescope/telescope.nvim",
+    dependencies = {
+      "polarmutex/git-worktree.nvim",
+    },
     keys = {
       -- add a keymap to browse plugin files
       {
