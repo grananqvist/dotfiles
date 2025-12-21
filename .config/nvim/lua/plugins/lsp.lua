@@ -97,21 +97,26 @@ return {
           },
           pyright = { enabled = false },
           basedpyright = {
+            enabled = true,
             settings = {
               basedpyright = {
                 analysis = {
-                  typeCheckingMode = "standard",
-                  inlayHints = {
-                    variableTypes = false,
-                    functionReturnTypes = false,
-                    parameterNames = false,
-                  },
+                  typeCheckingMode = "off", -- mypy handles type checking
+                  autoSearchPaths = true,
+                  useLibraryCodeForTypes = true,
+                  diagnosticMode = "openFilesOnly",
                 },
               },
             },
           },
-          ruff = { enabled = true },
-          ruff_lsp = { enabled = true },
+          ruff = {
+            enabled = true,
+            settings = {
+              organizeImports = true,
+              fixAll = true,
+            },
+          },
+          ruff_lsp = { enabled = false },
         },
         -- you can do any additional lsp server setup here
         -- return true if you don't want this server to be setup with lspconfig

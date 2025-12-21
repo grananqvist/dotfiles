@@ -12,7 +12,7 @@ return {
       fish = { "fish_indent" },
       sh = { "shfmt" },
       swift = { "swiftformat" },
-      python = { "yapf" },
+      python = { "ruff_format", "ruff_organize_imports" },
     },
     -- The options you set here will be merged with the builtin formatters.
     -- You can also define any custom formatters here.
