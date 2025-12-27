@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# pr-create - Create GitHub PR with Claude-generated description
+# Usage: pr-create <base-branch>
+
+set -e
+
+# Parse arguments
+if [ $# -ne 1 ]; then
+    echo "Usage: pr-create <base-branch>"
+    echo "Examples:"
+    echo "  pr-create develop"
+    echo "  pr-create main"
+    exit 1
+fi
+
+BASE_BRANCH="$1"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Error: Not in a git repository"
+    exit 1
+fi
+
+# Check if current branch exists on remote
+REMOTE=$(git config --get branch."$CURRENT_BRANCH".remote 2>/dev/null || echo "origin")
+if ! git ls-remote --heads "$REMOTE" "$CURRENT_BRANCH" | grep -q "$CURRENT_BRANCH"; then
+    echo "Current branch '$CURRENT_BRANCH' not found on remote '$REMOTE'"
+    echo "Push the branch first with: git push --set-upstream $REMOTE $CURRENT_BRANCH"
+    exit 1
+fi
+
+# Get the diff between current branch and base branch
+echo "Generating PR description based on diff with $BASE_BRANCH..."
+DIFF_OUTPUT=$(git diff "$BASE_BRANCH"..."$CURRENT_BRANCH")
+
+if [ -z "$DIFF_OUTPUT" ]; then
+    echo "No changes found between $CURRENT_BRANCH and $BASE_BRANCH"
+    exit 1
+fi
+
+# Check if PR template exists
+PR_TEMPLATE_PATH=".github/pull_request_template.md"
+if [ ! -f "$PR_TEMPLATE_PATH" ]; then
+    echo "Warning: PR template not found at $PR_TEMPLATE_PATH"
+    PR_TEMPLATE=""
+else
+    PR_TEMPLATE=$(cat "$PR_TEMPLATE_PATH")
+fi
+
+# Create prompt for Claude
+CLAUDE_PROMPT="You are helping create a GitHub pull request. Based on the following git diff and PR template, generate a concise PR description that fills in the template appropriately.
+
+PR Template:
+\`\`\`
+$PR_TEMPLATE
+\`\`\`
+
+Git diff:
+\`\`\`
+$DIFF_OUTPUT
+\`\`\`
+
+Please provide:
+1. A concise PR title (no more than 60 characters)
+2. A PR description that follows the template format
+
+Format your response as:
+TITLE: <title here>
+
+DESCRIPTION:
+<description here>
+
+Be concise but informative. Focus on what was changed and why, not implementation details."
+
+# Generate PR content using Claude
+echo "Generating PR content with Claude..."
+CLAUDE_OUTPUT=$(echo "$CLAUDE_PROMPT" | claude -p)
+
+# Extract title and description
+PR_TITLE=$(echo "$CLAUDE_OUTPUT" | grep "^TITLE:" | sed 's/^TITLE: *//')
+PR_DESCRIPTION=$(echo "$CLAUDE_OUTPUT" | sed -n '/^DESCRIPTION:/,$ p' | sed '1d')
+
+# Fallback if parsing fails
+if [ -z "$PR_TITLE" ]; then
+    PR_TITLE="$CURRENT_BRANCH"
+fi
+
+if [ -z "$PR_DESCRIPTION" ]; then
+    PR_DESCRIPTION="$CLAUDE_OUTPUT"
+fi
+
+# Show generated content for confirmation
+echo ""
+echo "==============================================="
+echo "Generated PR Content:"
+echo "==============================================="
+echo "Title: $PR_TITLE"
+echo ""
+echo "Description:"
+echo "$PR_DESCRIPTION"
+echo "==============================================="
+echo ""
+
+# Confirm with user
+read -p "Create PR with this content? (y/N): " -n 1 -r
+echo
+if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "PR creation cancelled"
+    exit 1
+fi
+
+# Create the PR
+echo "Creating PR..."
+gh pr create \
+    --title "$PR_TITLE" \
+    --body "$PR_DESCRIPTION" \
+    --base "$BASE_BRANCH" \
+    --head "$CURRENT_BRANCH"
+
+echo "✓ PR created successfully!"
+echo "View your PR: $(gh pr view --web)"

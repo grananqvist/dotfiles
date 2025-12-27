@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# wt-done - Clean up development session and conda environment
+# Usage: wt-done
+
+set -e
+
+# Get current tmux session name
+SESSION_NAME=$(tmux display-message -p "#S")
+
+echo "Cleaning up session: $SESSION_NAME"
+
+# Extract project path from session name (remove "dev-" prefix)
+PROJECT_NAME=$(echo "$SESSION_NAME" | sed 's/^dev-//')
+
+# Function to generate conda environment name (same logic as dev-new)
+generate_conda_env_name() {
+    local project_name="$1"
+    
+    # Try to get repo name and branch from current directory
+    # If we can't get git info, use the project name to reconstruct
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+        local repo_name=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo "unknown")")
+        local branch_name=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+    else
+        # Fallback: assume project name is the worktree directory name
+        # and try to extract repo/branch info from the path structure
+        local repo_name="unknown"
+        local branch_name="$project_name"
+    fi
+    
+    # Clean up names (replace problematic characters with -)
+    repo_name=$(echo "$repo_name" | sed 's/[^a-zA-Z0-9]/-/g')
+    branch_name=$(echo "$branch_name" | sed 's/[^a-zA-Z0-9]/-/g')
+    
+    echo "${repo_name}-${branch_name}"
+}
+
+# Try to determine conda environment name
+CONDA_ENV_NAME=$(generate_conda_env_name "$PROJECT_NAME")
+
+echo "Looking for conda environment: $CONDA_ENV_NAME"
+
+# Check if conda environment exists and delete it
+if conda env list | grep -q "^${CONDA_ENV_NAME} "; then
+    echo "Deleting conda environment: $CONDA_ENV_NAME"
+    conda env remove -n "$CONDA_ENV_NAME" -y
+    echo "✓ Conda environment deleted"
+else
+    echo "  No matching conda environment found"
+fi
+
+# Switch to next session and kill the current one
+echo "Switching tmux session and cleaning up..."
+old_session="$SESSION_NAME"
+tmux switch-client -n
+tmux kill-session -t "$old_session"
+
+echo "✓ Session cleanup complete"

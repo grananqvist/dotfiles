@@ -1,0 +1,177 @@
+#!/bin/bash
+
+# dev-new - Create tmux development environment
+# Usage: dev-new <path> [conda-env]
+
+set -ex
+
+# Parse arguments
+if [ $# -lt 1 ]; then
+    echo "Usage: dev-new <path> [conda-env]"
+    echo "Examples:"
+    echo "  dev-new /path/to/project"
+    echo "  dev-new /path/to/project my-conda-env"
+    echo ""
+    echo "If no conda-env specified, will try 'make install-dev' then 'make install'"
+    exit 1
+fi
+
+PROJECT_PATH="$1"
+CONDA_ENV="$2"
+
+# Resolve absolute path
+PROJECT_PATH=$(cd "$PROJECT_PATH" && pwd)
+
+# Check if path exists
+if [ ! -d "$PROJECT_PATH" ]; then
+    echo "Error: Directory '$PROJECT_PATH' does not exist"
+    exit 1
+fi
+
+# Find python project root with preferred directory names
+find_python_project() {
+    local search_path="$1"
+    local found_projects=()
+    
+    # Find all pyproject.toml files
+    while IFS= read -r -d '' file; do
+        found_projects+=("$(dirname "$file")")
+    done < <(find "$search_path" -name "pyproject.toml" -print0 2>/dev/null)
+    
+    case ${#found_projects[@]} in
+        0) echo "$search_path" ;; # No pyproject.toml found
+        1) echo "${found_projects[0]}" ;; # Single project
+        *)
+            # Multiple projects found - use preferred order
+            local preferred_dirs=("$(basename "$search_path")" "src" "app" "lib" "core" "main")
+            
+            for pref_dir in "${preferred_dirs[@]}"; do
+                for project in "${found_projects[@]}"; do
+                    if [[ "$(basename "$project")" == "$pref_dir" ]]; then
+                        echo "$project"
+                        return 0
+                    fi
+                done
+            done
+            
+            # No preferred match, use first one
+            echo "${found_projects[0]}"
+            ;;
+    esac
+}
+
+PYTHON_PROJECT_PATH=$(find_python_project "$PROJECT_PATH")
+
+# Generate session name from relative path from $HOME (sanitized for tmux)
+cd "$PROJECT_PATH"
+RELATIVE_PATH="${PROJECT_PATH#$HOME/}"
+SESSION_NAME="${RELATIVE_PATH//\//-}"
+SESSION_NAME="${SESSION_NAME//./_}"
+
+# Setup environment if no explicit conda env provided
+USE_VENV=false
+if [ -z "$CONDA_ENV" ]; then
+    echo "No conda env specified, trying make install-dev or make install..."
+    cd "$PYTHON_PROJECT_PATH"
+    if make install-dev; then
+        echo "  make install-dev succeeded"
+        USE_VENV=true
+    elif make install; then
+        echo "  make install succeeded"
+        USE_VENV=true
+    else
+        echo "  Warning: Neither make install-dev nor make install succeeded"
+    fi
+    cd "$PROJECT_PATH"
+fi
+
+# Kill existing session if it exists
+tmux has-session -t "$SESSION_NAME" 2>/dev/null && tmux kill-session -t "$SESSION_NAME"
+
+# Create new session with vim in tab 0
+echo "Creating tmux session '$SESSION_NAME'..."
+tmux new-session -d -s "$SESSION_NAME" -c "$PROJECT_PATH"
+
+# Wait for session to be fully ready
+sleep 0.5
+
+# Function to send conda activation command
+activate_conda() {
+    local pane="$1"
+    local env="$2"
+    if [ -n "$env" ]; then
+        tmux send-keys -t "$pane" "conda deactivate; conda activate $env" Enter
+    fi
+}
+
+# Function to activate .venv
+activate_venv() {
+    local pane="$1"
+    local project_path="$2"
+    tmux send-keys -t "$pane" "source $project_path/.venv/bin/activate" Enter
+}
+
+# Function to load terminal history
+load_terminal_history() {
+    local pane="$1"
+    local history_file="/Users/fgranqvist/automate-work/terminal_history.txt"
+
+    if [ -f "$history_file" ]; then
+        # Load history into bash history
+        tmux send-keys -t "$pane" "history -r $history_file" Enter
+    fi
+}
+
+# Tab 0: Setup vim
+tmux send-keys -t "$SESSION_NAME:1" "cd $PROJECT_PATH" Enter
+if [ -n "$CONDA_ENV" ]; then
+    activate_conda "$SESSION_NAME:1" "$CONDA_ENV"
+elif [ "$USE_VENV" = true ]; then
+    activate_venv "$SESSION_NAME:1" "$PYTHON_PROJECT_PATH"
+fi
+tmux send-keys -t "$SESSION_NAME:1" "nvim" Enter
+
+# Tab 1: Create new window for claude and terminal
+tmux new-window -t "$SESSION_NAME" -c "$PROJECT_PATH"
+
+# Split tab 1 vertically (terminal on left, claude on right)
+tmux split-window -t "$SESSION_NAME:2" -h -p 37
+
+# Setup terminal pane (left side of tab 1)
+tmux send-keys -t "$SESSION_NAME:2.1" "cd $PROJECT_PATH" Enter
+if [ -n "$CONDA_ENV" ]; then
+    activate_conda "$SESSION_NAME:2.1" "$CONDA_ENV"
+elif [ "$USE_VENV" = true ]; then
+    activate_venv "$SESSION_NAME:2.1" "$PYTHON_PROJECT_PATH"
+fi
+load_terminal_history "$SESSION_NAME:2.1"
+
+# Setup claude pane (right side of tab 1)
+tmux send-keys -t "$SESSION_NAME:2.2" "cd $PROJECT_PATH" Enter
+if [ -n "$CONDA_ENV" ]; then
+    activate_conda "$SESSION_NAME:2.2" "$CONDA_ENV"
+elif [ "$USE_VENV" = true ]; then
+    activate_venv "$SESSION_NAME:2.2" "$PYTHON_PROJECT_PATH"
+fi
+tmux send-keys -t "$SESSION_NAME:2.2" "claude" Enter
+
+# Focus on vim (tab 0)
+tmux select-window -t "$SESSION_NAME:1"
+
+# Attach to the session
+echo "✓ Development environment ready"
+echo "  Session: $SESSION_NAME"
+echo "  Project: $PROJECT_PATH"
+echo "  Python project: $PYTHON_PROJECT_PATH"
+if [ -n "$CONDA_ENV" ]; then
+    echo "  Conda env: $CONDA_ENV"
+elif [ "$USE_VENV" = true ]; then
+    echo "  Using .venv (uv)"
+fi
+echo ""
+echo "Layout:"
+echo "  Tab 1: vim"
+echo "  Tab 2: terminal (left) + claude (right)"
+echo ""
+echo "Attaching to tmux session..."
+tmux switch-client -t "$SESSION_NAME"

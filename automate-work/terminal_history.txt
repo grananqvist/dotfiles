@@ -1,0 +1,21 @@
+# Common development commands
+git status
+git diff
+git add .
+git commit -m "wip"
+git push
+git pull
+poetry install
+python -m pytest -svx
+python main.py
+python -m mypy .
+python -m ruff check .
+python -m ruff format .
+cd ..
+python --version
+which python
+conda list
+conda env list
+claude
+cd ramsay; poetry install
+wt-new eng/PR-158628729 upstream develop upstream

@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# wt-new - Create new worktree with branch from remote
+# Usage: wt-new <branch-name> <push-remote> <source-branch> <source-remote>
+
+set -e
+
+# Parse arguments
+if [ $# -ne 4 ]; then
+    echo "Usage: wt-new <branch-name> <push-remote> <source-branch> <source-remote>"
+    echo "Examples:"
+    echo "  wt-new feature-123 origin develop upstream"
+    echo "  wt-new review-456 upstream pr-456 upstream"
+    exit 1
+fi
+
+BRANCH_NAME="$1"
+PUSH_REMOTE="$2"
+SOURCE_BRANCH="$3"
+SOURCE_REMOTE="$4"
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Error: Not in a git repository"
+    exit 1
+fi
+
+# Determine worktree root - handle both bare and non-bare repos
+if git rev-parse --is-bare-repository >/dev/null 2>&1 && [ "$(git rev-parse --is-bare-repository)" = "true" ]; then
+    # We're in a bare repository
+    WORKTREE_ROOT="$(pwd)"
+else
+    # We're in a regular worktree
+    WORKTREE_ROOT=$(git rev-parse --git-common-dir | sed 's|/.git$||')
+fi
+
+WORKTREE_PATH="$WORKTREE_ROOT/$BRANCH_NAME"
+
+# Check if worktree already exists
+if [ -d "$WORKTREE_PATH" ]; then
+    echo "Error: Worktree directory '$WORKTREE_PATH' already exists"
+    exit 1
+fi
+
+# Fetch latest from source remote
+echo "Fetching latest from $SOURCE_REMOTE..."
+git fetch "$SOURCE_REMOTE"
+
+# Check if the branch exists on source remote
+if ! git show-ref --verify --quiet "refs/remotes/$SOURCE_REMOTE/$SOURCE_BRANCH"; then
+    echo "Error: Branch '$SOURCE_BRANCH' not found on remote '$SOURCE_REMOTE'"
+    exit 1
+fi
+
+# Create the worktree
+echo "Creating worktree '$BRANCH_NAME' at '$WORKTREE_PATH'..."
+git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "$SOURCE_REMOTE/$SOURCE_BRANCH"
+
+echo "Changing to new worktree directory..."
+cd "$WORKTREE_PATH"
+
+echo "pushing to remote..."
+git push --set-upstream $PUSH_REMOTE $BRANCH_NAME
+
+echo "✓ Worktree '$BRANCH_NAME' created successfully"
+echo "  Path: $WORKTREE_PATH"
+echo "  Branch: $BRANCH_NAME"
+echo "  Source: $SOURCE_REMOTE/$SOURCE_BRANCH"
+echo "  Dest: $PUSH_REMOTE/$BRANCH_NAME"
+echo ""
+exec $SHELL

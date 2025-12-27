@@ -1,0 +1,150 @@
+#!/bin/bash
+
+# pr-update - Handle PR review comments with Claude
+# Usage: pr-update [pr-number]
+
+set -e
+
+# Parse arguments
+PR_NUMBER=""
+if [ $# -eq 1 ]; then
+    PR_NUMBER="$1"
+fi
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    echo "Error: Not in a git repository"
+    exit 1
+fi
+
+# Get PR number if not provided
+if [ -z "$PR_NUMBER" ]; then
+    # Try to get PR number from current branch
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    PR_NUMBER=$(gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+    
+    if [ -z "$PR_NUMBER" ]; then
+        echo "Could not determine PR number. Please provide it as an argument."
+        echo "Usage: pr-update <pr-number>"
+        exit 1
+    fi
+fi
+
+echo "Processing PR #$PR_NUMBER..."
+
+# Get unresolved PR comments
+echo "Fetching unresolved PR comments..."
+COMMENTS=$(gh pr view "$PR_NUMBER" --json reviewThreads --jq '.reviewThreads[] | select(.isResolved == false) | {id: .id, body: .comments[0].body, path: .path, line: .line, author: .comments[0].author.login}')
+
+if [ -z "$COMMENTS" ]; then
+    echo "No unresolved comments found for PR #$PR_NUMBER"
+    exit 0
+fi
+
+echo "Found unresolved comments:"
+echo "$COMMENTS" | jq -r '"\(.author): \(.body)"' | head -20
+
+# Process each comment
+echo "$COMMENTS" | jq -c '.' | while read -r comment; do
+    COMMENT_ID=$(echo "$comment" | jq -r '.id')
+    COMMENT_BODY=$(echo "$comment" | jq -r '.body')
+    COMMENT_PATH=$(echo "$comment" | jq -r '.path')
+    COMMENT_LINE=$(echo "$comment" | jq -r '.line')
+    COMMENT_AUTHOR=$(echo "$comment" | jq -r '.author')
+    
+    echo ""
+    echo "==============================================="
+    echo "Processing comment from $COMMENT_AUTHOR:"
+    echo "File: $COMMENT_PATH:$COMMENT_LINE"
+    echo "Comment: $COMMENT_BODY"
+    echo "==============================================="
+    
+    # Get file context around the comment
+    FILE_CONTEXT=""
+    if [ -f "$COMMENT_PATH" ] && [ "$COMMENT_LINE" != "null" ]; then
+        # Get 10 lines before and after the comment line
+        START_LINE=$((COMMENT_LINE - 10))
+        END_LINE=$((COMMENT_LINE + 10))
+        if [ $START_LINE -lt 1 ]; then START_LINE=1; fi
+        
+        FILE_CONTEXT=$(sed -n "${START_LINE},${END_LINE}p" "$COMMENT_PATH" | cat -n)
+    fi
+    
+    # Create prompt for Claude
+    CLAUDE_PROMPT="You are helping address a GitHub PR review comment. Please analyze the comment and either:
+1. Provide a response explaining why the suggestion should not be implemented (if the current code is correct)
+2. Describe exactly what code changes need to be made to address the comment
+
+Review Comment:
+Author: $COMMENT_AUTHOR
+File: $COMMENT_PATH:$COMMENT_LINE
+Comment: $COMMENT_BODY
+
+Current code context:
+\`\`\`
+$FILE_CONTEXT
+\`\`\`
+
+Please respond with either:
+RESPONSE: <explanation of why no change is needed>
+
+OR
+
+ACTION: <description of what needs to be changed>
+CODE: <specific code changes needed>
+
+Be concise and specific."
+    
+    # Get Claude's analysis
+    echo "Analyzing comment with Claude..."
+    CLAUDE_RESPONSE=$(echo "$CLAUDE_PROMPT" | claude -p)
+    
+    echo "Claude's analysis:"
+    echo "$CLAUDE_RESPONSE"
+    
+    # Check if Claude suggests a response or action
+    if echo "$CLAUDE_RESPONSE" | grep -q "^RESPONSE:"; then
+        # Claude suggests responding without code changes
+        RESPONSE=$(echo "$CLAUDE_RESPONSE" | grep "^RESPONSE:" | sed 's/^RESPONSE: *//')
+        echo ""
+        echo "Suggested response: $RESPONSE"
+        echo ""
+        read -p "Post this response to the PR comment? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # Post response to GitHub
+            gh pr comment "$PR_NUMBER" --body "Re: $COMMENT_BODY
+
+$RESPONSE"
+            echo "✓ Response posted"
+        fi
+    elif echo "$CLAUDE_RESPONSE" | grep -q "^ACTION:"; then
+        # Claude suggests code changes
+        ACTION=$(echo "$CLAUDE_RESPONSE" | grep "^ACTION:" | sed 's/^ACTION: *//')
+        echo ""
+        echo "Suggested action: $ACTION"
+        echo ""
+        read -p "Would you like Claude to make these changes? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            # Let Claude make the changes
+            echo "Having Claude make the changes..."
+            echo "File: $COMMENT_PATH - $ACTION" | claude -p
+            echo "✓ Changes made by Claude"
+            echo "Please review the changes and commit if satisfied"
+        fi
+    else
+        echo "Claude's response doesn't follow expected format. Please handle manually."
+    fi
+    
+    echo ""
+    read -p "Continue to next comment? (Y/n): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
+        break
+    fi
+done
+
+echo ""
+echo "✓ Finished processing PR comments"
+echo "Don't forget to push any changes: git push"

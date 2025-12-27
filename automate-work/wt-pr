@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# wt-pr - Create worktree for PR with standard naming and setup dev environment
+# Usage: wt-pr <pr-number> [conda-env]
+
+set -e
+
+# Parse arguments
+if [ $# -lt 1 ]; then
+    echo "Usage: wt-pr <pr-number> [conda-env]"
+    echo "Examples:"
+    echo "  wt-pr 123"
+    echo "  wt-pr 456 my-conda-env"
+    echo ""
+    echo "This will create: eng/PR-<pr-number> branch from upstream/develop"
+    echo "and setup development environment with tmux"
+    exit 1
+fi
+
+PR_NUMBER="$1"
+CONDA_ENV="$2"
+BRANCH_NAME="eng/PR-$PR_NUMBER"
+
+# Get the directory of this script to find wt-new and dev-new
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Call wt-new with the standard PR parameters
+echo "Creating PR worktree: $BRANCH_NAME"
+"$SCRIPT_DIR/wt-new" "$BRANCH_NAME" upstream develop upstream
+
+# wt-new has changed directory to the new worktree, so use pwd
+WORKTREE_PATH="$(pwd)"
+
+# Setup development environment
+echo "Setting up development environment..."
+if [ -n "$CONDA_ENV" ]; then
+    exec "$SCRIPT_DIR/dev-new" "$WORKTREE_PATH" "$CONDA_ENV"
+else
+    exec "$SCRIPT_DIR/dev-new" "$WORKTREE_PATH"
+fi
