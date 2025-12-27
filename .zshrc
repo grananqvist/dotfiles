@@ -64,6 +64,7 @@ export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 
 # Dotfiles git command
 alias dots='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+export PATH="${HOME}/automate-work:$PATH"
 
 source ~/github/git-subrepo/.rc
 export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"

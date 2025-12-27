@@ -2,8 +2,6 @@
 theme = TokyoNight
 font-family = "JetBrains Mono" 
 font-size = 13
-# Hides the title bar for a cleaner "tmux-only" look (macOS)
-window-decoration = false
 
 # --- Tmux Optimization ---
 # Remove padding so tmux borders touch the window edge
