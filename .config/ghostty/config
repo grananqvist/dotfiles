@@ -1,0 +1,24 @@
+# --- Appearance ---
+theme = TokyoNight
+font-family = "JetBrains Mono" 
+font-size = 13
+# Hides the title bar for a cleaner "tmux-only" look (macOS)
+window-decoration = false
+
+# --- Tmux Optimization ---
+# Remove padding so tmux borders touch the window edge
+window-padding-x = 0
+window-padding-y = 0
+
+# --- Compatibility ---
+# prevents "unknown terminal" errors on remote servers
+term = xterm-256color
+
+# --- Behavior ---
+# Confirm closing window only if the shell is still active
+confirm-close-surface = true
+# Disable native ghostty tabs/splits shortcuts if you strictly use tmux
+# (Optional: keeps you from accidentally opening a native split)
+keybind = cmd+d=unbind
+keybind = cmd+shift+d=unbind
+keybind = cmd+t=unbind
