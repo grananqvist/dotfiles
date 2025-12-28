@@ -64,6 +64,7 @@ PYTHON_PROJECT_PATH=$(find_python_project "$PROJECT_PATH")
 
 # Generate session name from relative path from $HOME (sanitized for tmux)
 cd "$PROJECT_PATH"
+
 RELATIVE_PATH="${PROJECT_PATH#$HOME/}"
 SESSION_NAME="${RELATIVE_PATH//\//-}"
 SESSION_NAME="${SESSION_NAME//./_}"
@@ -135,7 +136,7 @@ tmux send-keys -t "$SESSION_NAME:1" "nvim" Enter
 tmux new-window -t "$SESSION_NAME" -c "$PROJECT_PATH"
 
 # Split tab 1 vertically (terminal on left, claude on right)
-tmux split-window -t "$SESSION_NAME:2" -h -p 37
+tmux split-window -t "$SESSION_NAME:2" -h -l 37%
 
 # Setup terminal pane (left side of tab 1)
 tmux send-keys -t "$SESSION_NAME:2.1" "cd $PROJECT_PATH" Enter
@@ -145,6 +146,8 @@ elif [ "$USE_VENV" = true ]; then
     activate_venv "$SESSION_NAME:2.1" "$PYTHON_PROJECT_PATH"
 fi
 load_terminal_history "$SESSION_NAME:2.1"
+# Update git submodules in background (non-blocking)
+tmux send-keys -t "$SESSION_NAME:2.1" "git submodule update --init --recursive &" Enter
 
 # Setup claude pane (right side of tab 1)
 tmux send-keys -t "$SESSION_NAME:2.2" "cd $PROJECT_PATH" Enter

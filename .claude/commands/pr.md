@@ -1,5 +1,5 @@
 ---
-allowed-tools: Bash(git checkout --branch:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(gh pr create:*), Bash(gh pr view:*)
+allowed-tools: Bash(git checkout:*), Bash(git add:*), Bash(git status:*), Bash(git push:*), Bash(git commit:*), Bash(gh pr create:*), Bash(gh pr view:*), Bash(git diff:*), Bash(git branch:*), Bash(cat .github/pull_request_template.md:*), Read(*)
 description: Commit, push, and open a PR
 ---
 
@@ -16,13 +16,17 @@ description: Commit, push, and open a PR
 
 ## PR Template
 
-!`.github/pull_request_template.md`
+!`cat .github/pull_request_template.md 2>/dev/null || echo "No PR template found"`
+Guidelines when filling out the PR template, and when doing any tasks presented as checkboxes:
+* Be concise, if there are any checkboxes, we should make sure to address them, unless its related to e2e testing.
+* For CHANGELOG.md checkboxes, we only do them if there are user-facing changes or bug fixes.
+* For documentation updates, make sure we include any updates to relevant .rst or .md files, particularly API reference.
 
 ## Your task
 
 Based on the above changes:
 1. Create a new branch if on main
-2. Create a single commit with an appropriate message, do not include authorship information, and no emojis.
+2. Create a single commit with an appropriate 1 sentence message, do not include authorship information, and no emojis.
 3. Push the branch to origin
 4. If a PR already exists for this branch, just push (step 3) - do not create a new PR
 5. If no PR exists, create a pull request using `gh pr create` with a body following the PR template above. If `$ARGUMENTS` is provided, use `--base $ARGUMENTS` to target that branch.
