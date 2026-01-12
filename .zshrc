@@ -104,4 +104,6 @@ zle -N _fzf_history_with_reload
 bindkey '^R' _fzf_history_with_reload
 
 # zoxide setup
-eval "$(zoxide init zsh --cmd cd)"
+if [[ "$CLAUDECODE" != "1" ]]; then
+    eval "$(zoxide init zsh --cmd cd)"
+fi

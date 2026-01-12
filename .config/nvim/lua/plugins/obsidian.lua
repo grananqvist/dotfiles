@@ -29,12 +29,12 @@ return {
       {
         name = "work",
         -- iCloud corporate vault for work-related notes
-        path = "/Users/fgranqvist/Library/Mobile Documents/com~apple~icloud~applecorporate/Documents/obsidian",
+        path = vim.fn.expand("~") .. "/Library/Mobile Documents/com~apple~icloud~applecorporate/Documents/obsidian",
       },
       {
         name = "personal",
         -- iCloud personal vault for personal notes
-        path = "/Users/fgranqvist/Library/Mobile Documents/iCloud~md~obsidian/Documents/Personal",
+        path = vim.fn.expand("~") .. "/Library/Mobile Documents/iCloud~md~obsidian/Documents/Personal",
       },
     },
 
